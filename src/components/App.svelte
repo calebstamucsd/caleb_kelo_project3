@@ -48,7 +48,7 @@
             .selectAll()
             .data(nodes) // Contain the extra data from the f_bars.json file (very helpful because I can just add more stuff to the dataframe and make a new f_bars.json file)
             .join("circle")
-            .attr("r", d => Math.cbrt(d.review_count))
+            .attr("r", d => Math.cbrt(d.review_count)) // Size of node is proportional to number of Yelp Reviews
             .on("mouseenter", tooltip_in) // When we hover, call the tooltip_in function
             // .on("mouseout", tooltip_out) // When we leave, call the tooltip_out function
 
@@ -72,11 +72,14 @@
         }
 
         function colorSwap(event) {
+            // Make the circle you clicked red
             svg.selectAll('circle').filter(function (d) {return d.id == event.subject.id}).style('fill', 'red');
             svg.selectAll('line').filter(function (d) {return (d.source.id == event.subject.id 
                 || d.target.id == event.subject.id)}).each(function (d) {
                     console.log(d)
+                    // For each edge, color the edge red
                     d3.select(this).style('stroke', 'red');
+                    // Determine whether the connected node is storced in d.source or d.target
                     let target_id = null;
                     if(d.source.id == event.subject.id) {
                         target_id = d.target.id
@@ -84,6 +87,7 @@
                     else {
                         target_id = d.source.id
                     }
+                    // Find the connected node and shade it in as a paler red
                     svg.selectAll('circle').filter(function (d) {return d.id == target_id}).style('fill', `#a65959`);
                 })
         }
@@ -111,6 +115,7 @@
             event.subject.fy = null;
         }
 
+        // Refer to colorOn for everything in this function
         function colorOff(event) {
             svg.selectAll('circle').filter(function (d) {return d.id == event.subject.id}).style('fill', 'white');
             svg.selectAll('line').filter(function (d) {return (d.source.id == event.subject.id 
