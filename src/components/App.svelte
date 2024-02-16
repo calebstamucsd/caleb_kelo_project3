@@ -1,7 +1,7 @@
 <script>
     import * as d3 from 'd3';
 
-    import bar_nodes from './f_bars.json'
+    import bar_nodes from './bars.json'
     import bar_edges from './f_bar_links.json'
     import { select } from 'd3-selection';
 
@@ -48,9 +48,9 @@
             .selectAll()
             .data(nodes) // Contain the extra data from the f_bars.json file (very helpful because I can just add more stuff to the dataframe and make a new f_bars.json file)
             .join("circle")
-            .attr("r", 7)
+            .attr("r", d => Math.cbrt(d.review_count))
             .on("mouseenter", tooltip_in) // When we hover, call the tooltip_in function
-            .on("mouseout", tooltip_out) // When we leave, call the tooltip_out function
+            // .on("mouseout", tooltip_out) // When we leave, call the tooltip_out function
 
         // Overarching function for dragging nodes
         node.call(d3.drag()
@@ -71,12 +71,29 @@
                 .attr("cy", d => d.y);
         }
 
+        function colorSwap(event) {
+            svg.selectAll('circle').filter(function (d) {return d.id == event.subject.id}).style('fill', 'red');
+            svg.selectAll('line').filter(function (d) {return (d.source.id == event.subject.id 
+                || d.target.id == event.subject.id)}).each(function (d) {
+                    console.log(d)
+                    d3.select(this).style('stroke', 'red');
+                    let target_id = null;
+                    if(d.source.id == event.subject.id) {
+                        target_id = d.target.id
+                    }
+                    else {
+                        target_id = d.source.id
+                    }
+                    svg.selectAll('circle').filter(function (d) {return d.id == target_id}).style('fill', `#a65959`);
+                })
+        }
+
         // Start drag
         function dragstarted(event) {
+            colorSwap(event)
             if (!event.active) simulation.alphaTarget(0.3).restart();
             event.subject.fx = event.subject.x;
             event.subject.fy = event.subject.y;
-            event.sourceEvent.srcElement.style.fill = 'red';
         }
 
         // Actually Moving Nodes
@@ -88,10 +105,26 @@
         // End Drag. Pretty glitchy with the colors. If you let go of a node over the tooltip or out of the svg bounds,
         // it'll just stay red.
         function dragended(event) {
-            event.sourceEvent.srcElement.style.fill = 'white';
+            colorOff(event)
             if (!event.active) simulation.alphaTarget(0);
             event.subject.fx = null;
             event.subject.fy = null;
+        }
+
+        function colorOff(event) {
+            svg.selectAll('circle').filter(function (d) {return d.id == event.subject.id}).style('fill', 'white');
+            svg.selectAll('line').filter(function (d) {return (d.source.id == event.subject.id 
+                || d.target.id == event.subject.id)}).each(function (d) {
+                    d3.select(this).style('stroke', '#999');
+                    let target_id = null;
+                    if(d.source.id == event.subject.id) {
+                        target_id = d.target.id
+                    }
+                    else {
+                        target_id = d.source.id
+                    }
+                    svg.selectAll('circle').filter(function (d) {return d.id == target_id}).style('fill', 'white');
+                })
         }
 
         // The tooltip is actually just one div tag that changes position, hides itself, and changes text based on the user's
@@ -107,7 +140,7 @@
         function tooltip_in(event, d) { 
                 console.log('Entered Node')
                 return tooltip
-                    .html("<h4>" + d.name + "</h4>")
+                    .html("<h4>" + d.name + "</h4> <body>" + d.address + ". <br>" + d.review_count + " Yelp reviews.</body>")
                     .style("visibility", "visible")
                     .style("top", (event.pageY + 10) + "px")
                     .style("left", (event.pageX + 10) + "px");
@@ -117,11 +150,11 @@
         // examples I was looking at online so it might just be like that 
         function tooltip_out() {
                 console.log('Left node')
-                return tooltip
-                .transition()
-                .delay(2000)
-                .style("visibility", "hidden");
+                return tooltip.style("visibility", "hidden");
         }
+
+        const network = d3.select('.network')
+        network.on('click', tooltip_out)
     });
 </script>
 
@@ -164,11 +197,17 @@
         background-color: '#B2AC88';
     }
 
+    :global(h1, h2, h3, h4, h5, h6, body) {
+    text-align: center;
+    }
+
     :global(.tooltip) {
+        position: absolute;
         fill: white;
         font-family: sans-serif;
-        padding-left: 5px;
-        padding-right: 5px;
+        padding-left:20px;
+        padding-right:20px;
+        padding-bottom:20px;
         border: 1px solid grey;
         border-radius: 10px;
     }
