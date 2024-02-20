@@ -1,10 +1,9 @@
-<script>
+<script >
     import * as d3 from 'd3';
 
-    import bar_nodes from './bars.json'
-    import bar_edges from './f_bar_links.json'
+    import bar_nodes from './bars.json';
+    import bar_edges from './f_bar_links.json';
     import { select } from 'd3-selection';
-
     import {onMount} from 'svelte';
 
     let svg;
@@ -17,6 +16,7 @@
 
         const links = bar_edges.map(d => ({...d})); // I don't actually know what this does but it does seem essential
         const nodes = bar_nodes.map(d => ({...d}));
+
 
         // Makes the graph look pretty and move around nicely
         const simulation = d3.forceSimulation(nodes)
@@ -50,7 +50,7 @@
             .join("circle")
             .attr("r", d => Math.cbrt(d.review_count)) // Size of node is proportional to number of Yelp Reviews
             .on("mouseenter", tooltip_in) // When we hover, call the tooltip_in function
-            // .on("mouseout", tooltip_out) // When we leave, call the tooltip_out function
+            .on("mouseout", tooltip_out) // When we leave, call the tooltip_out function
 
         // Overarching function for dragging nodes
         node.call(d3.drag()
@@ -143,7 +143,6 @@
 
         // This is called when you hover over a node. It changes the text to match that node and appears wherever you're hovering.
         function tooltip_in(event, d) { 
-                console.log('Entered Node')
                 return tooltip
                     .html("<h4>" + d.name + "</h4> <body>" + d.address + ". <br>" + d.review_count + " Yelp reviews.</body>")
                     .style("visibility", "visible")
@@ -154,22 +153,64 @@
         // This is meant to hide the tooltip when you leave a node. It's been buggy, but it's a little buggy even in the
         // examples I was looking at online so it might just be like that 
         function tooltip_out() {
-                console.log('Left node')
                 return tooltip.style("visibility", "hidden");
         }
 
-        const network = d3.select('.network')
-        network.on('click', tooltip_out)
+        // Function to highlight node and link
+        function highlightNode(nodeId) {
+            const selectedNode = svg.select(`circle[id='${nodeId}']`);
+            selectedNode.style("fill", "red");
+
+            // Highlight connected links
+            link.filter(d => d.source.id === nodeId || d.target.id === nodeId)
+                .attr("stroke", "red");
+
+            // Dim unconnected nodes
+            node.filter(d => d.id !== nodeId)
+                .style("fill", "#ccc");
+            
+            resetHighlighting()
+        }
+
+        // Function to reset highlighting
+        function resetHighlighting() {
+            node.style("fill", "#fff");
+            link.attr("stroke", "#999");
+        }
+
+        // List item click handler
+        function listItemClicked(event, d) {
+            resetHighlighting(); // Reset previous highlighting
+            highlightNode(d.id); // Highlight clicked node
+            d3.selectAll('.bar-list div').style("background-color", "transparent"); // Remove highlight from other items
+            d3.select(event.currentTarget).style("background-color", "lightblue"); // Highlight background
+        }
+
+        // Create list of all bars and addresses
+        const barList = d3.select('.bar-list')
+            .selectAll('div')
+            .data(nodes)
+            .enter()
+            .append('div')
+            .text(d => `${d.name}: ${d.address}`)
+            .on("click", listItemClicked);
     });
+
 </script>
 
-<div>
+<div class="bar-list">
+    <!-- Bar list will be populated dynamically -->
+</div>
+
+<div class='title'>
     Network Visualization of Jazz Clubs in Downtown New Orleans by Mutual Yelp Reviews
 </div>
 <div class='centered'>
     <svg class='network' viewBox="190 150 390 350">
     </svg>
 </div>
+
+
 
 <style>
     @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;700&display=swap");
@@ -216,14 +257,29 @@
         border: 1px solid grey;
         border-radius: 10px;
     }
+    .title {
+        position:relative
+    }
 
     .centered {
         position: absolute;
         top: 50%;
-        left: 50%;
+        left: 67%;
         transform: translate(-50%, -50%);
         background-color: gray;
-        padding: 10px;
+        padding: 5px;
         border: 1px solid black;
     }
+    .bar-list {
+        position: absolute;
+        top: 50%;
+        left: 10px;
+        transform: translateY(-50%);
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+
+
+
 </style>
