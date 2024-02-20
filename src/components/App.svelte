@@ -160,6 +160,7 @@
         function highlightNode(nodeId) {
             const selectedNode = svg.select(`circle[id='${nodeId}']`);
             selectedNode.style("fill", "red");
+            console.log(selectedNode)
 
             // Highlight connected links
             link.filter(d => d.source.id === nodeId || d.target.id === nodeId)
@@ -168,8 +169,6 @@
             // Dim unconnected nodes
             node.filter(d => d.id !== nodeId)
                 .style("fill", "#ccc");
-            
-            resetHighlighting()
         }
 
         // Function to reset highlighting
@@ -180,13 +179,25 @@
 
         // List item click handler
         function listItemClicked(event, d) {
-            resetHighlighting(); // Reset previous highlighting
-            highlightNode(d.id); // Highlight clicked node
-            d3.selectAll('.bar-list div').style("background-color", "transparent"); // Remove highlight from other items
-            d3.select(event.currentTarget).style("background-color", "lightblue"); // Highlight background
+            const clickedItem = d3.select(event.currentTarget);
+    
+            // Check if the clicked item is already highlighted
+            const isHighlighted = clickedItem.style("background-color") === "rgb(240, 228, 66)";
+            console.log(clickedItem.style("background-color"))
+
+            if (isHighlighted) {
+                resetHighlighting(); // Reset highlighting if already highlighted
+                d3.selectAll('.bar-list div').style("background-color", "rgb(86, 180, 233)");
+            } else {
+                resetHighlighting(); // Reset previous highlighting
+                highlightNode(d.id); // Highlight clicked node
+                d3.selectAll('.bar-list div').style("background-color", "rgb(86, 180, 233)"); // Remove highlight from other items
+                clickedItem.style("background-color", "rgb(240, 228, 66)"); // Highlight background
+            }
         }
 
         // Create list of all bars and addresses
+        bar_nodes.sort((a, b) => (a.name > b.name) ? 1 : -1);
         const barList = d3.select('.bar-list')
             .selectAll('div')
             .data(nodes)
@@ -208,6 +219,19 @@
 <div class='centered'>
     <svg class='network' viewBox="190 150 390 350">
     </svg>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+    <div><span class="legend-dot" style="background-color: red;"></span> Selected Bar </div>
+    <div><span class="legend-dot" style="background-color: #ccc;"></span> Bar </div>
+</div>
+
+<!-- Instructions -->
+<div class="instructions">
+    <h3>Instructions</h3>
+    <p> Click on a bar directly to see its connected bars. </p>
+    <p> Or click on a bar in the list to highlight it and its connected bars.</p>
 </div>
 
 
@@ -258,7 +282,15 @@
         border-radius: 10px;
     }
     .title {
-        position:relative
+        font-family: 'Nunito', sans-serif; /* Use a custom font */
+        font-size: 32px; /* Adjust the font size */
+        font-weight: bold; /* Make the title bold */
+        color: #333; /* Set the text color */
+        text-align: center; /* Center the text */
+        margin-bottom: 20px; /* Add some bottom margin for spacing */
+        line-height: 1.2; /* Adjust line height for better spacing */
+        max-width: 60%;
+        margin: 0 auto; /* Center the element horizontally */
     }
 
     .centered {
@@ -273,10 +305,51 @@
     .bar-list {
         position: absolute;
         top: 50%;
-        left: 10px;
+        left: 15%;
         transform: translateY(-50%);
         max-height: 80vh;
         overflow-y: auto;
+        border: 2px solid #7c7c7c; /* Add border */
+        border-width: 10px;
+        background-color: rgb(86, 180, 233);
+        padding: 15px; /* Add some padding for spacing */
+    }
+
+    /* Legend */
+    .legend {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .legend-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+
+    /* Instructions */
+    .instructions {
+        position: absolute;
+        bottom: 40px;
+        right: 20px;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .instructions h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
     }
 
 
