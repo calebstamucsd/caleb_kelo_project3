@@ -1,10 +1,9 @@
-<script>
+<script >
     import * as d3 from 'd3';
 
-    import bar_nodes from './bars.json'
-    import bar_edges from './f_bar_links.json'
+    import bar_nodes from './bars.json';
+    import bar_edges from './f_bar_links.json';
     import { select } from 'd3-selection';
-
     import {onMount} from 'svelte';
 
     let svg;
@@ -17,6 +16,7 @@
 
         const links = bar_edges.map(d => ({...d})); // I don't actually know what this does but it does seem essential
         const nodes = bar_nodes.map(d => ({...d}));
+
 
         // Makes the graph look pretty and move around nicely
         const simulation = d3.forceSimulation(nodes)
@@ -50,7 +50,7 @@
             .join("circle")
             .attr("r", d => Math.cbrt(d.review_count)) // Size of node is proportional to number of Yelp Reviews
             .on("mouseenter", tooltip_in) // When we hover, call the tooltip_in function
-            // .on("mouseout", tooltip_out) // When we leave, call the tooltip_out function
+            .on("mouseout", tooltip_out) // When we leave, call the tooltip_out function
 
         // Overarching function for dragging nodes
         node.call(d3.drag()
@@ -143,7 +143,6 @@
 
         // This is called when you hover over a node. It changes the text to match that node and appears wherever you're hovering.
         function tooltip_in(event, d) { 
-                console.log('Entered Node')
                 return tooltip
                     .html("<h4>" + d.name + "</h4> <body>" + d.address + ". <br>" + d.review_count + " Yelp reviews.</body>")
                     .style("visibility", "visible")
@@ -154,22 +153,88 @@
         // This is meant to hide the tooltip when you leave a node. It's been buggy, but it's a little buggy even in the
         // examples I was looking at online so it might just be like that 
         function tooltip_out() {
-                console.log('Left node')
                 return tooltip.style("visibility", "hidden");
         }
 
-        const network = d3.select('.network')
-        network.on('click', tooltip_out)
+        // Function to highlight node and link
+        function highlightNode(nodeId) {
+            const selectedNode = svg.select(`circle[id='${nodeId}']`);
+            selectedNode.style("fill", "red");
+            console.log(selectedNode)
+
+            // Highlight connected links
+            link.filter(d => d.source.id === nodeId || d.target.id === nodeId)
+                .attr("stroke", "red");
+
+            // Dim unconnected nodes
+            node.filter(d => d.id !== nodeId)
+                .style("fill", "#ccc");
+        }
+
+        // Function to reset highlighting
+        function resetHighlighting() {
+            node.style("fill", "#fff");
+            link.attr("stroke", "#999");
+        }
+
+        // List item click handler
+        function listItemClicked(event, d) {
+            const clickedItem = d3.select(event.currentTarget);
+    
+            // Check if the clicked item is already highlighted
+            const isHighlighted = clickedItem.style("background-color") === "rgb(240, 228, 66)";
+            console.log(clickedItem.style("background-color"))
+
+            if (isHighlighted) {
+                resetHighlighting(); // Reset highlighting if already highlighted
+                d3.selectAll('.bar-list div').style("background-color", "rgb(86, 180, 233)");
+            } else {
+                resetHighlighting(); // Reset previous highlighting
+                highlightNode(d.id); // Highlight clicked node
+                d3.selectAll('.bar-list div').style("background-color", "rgb(86, 180, 233)"); // Remove highlight from other items
+                clickedItem.style("background-color", "rgb(240, 228, 66)"); // Highlight background
+            }
+        }
+
+        // Create list of all bars and addresses
+        bar_nodes.sort((a, b) => (a.name > b.name) ? 1 : -1);
+        const barList = d3.select('.bar-list')
+            .selectAll('div')
+            .data(nodes)
+            .enter()
+            .append('div')
+            .text(d => `${d.name}: ${d.address}`)
+            .on("click", listItemClicked);
     });
+
 </script>
 
-<div>
+<div class="bar-list">
+    <!-- Bar list will be populated dynamically -->
+</div>
+
+<div class='title'>
     Network Visualization of Jazz Clubs in Downtown New Orleans by Mutual Yelp Reviews
 </div>
 <div class='centered'>
     <svg class='network' viewBox="190 150 390 350">
     </svg>
 </div>
+
+<!-- Legend -->
+<div class="legend">
+    <div><span class="legend-dot" style="background-color: red;"></span> Selected Bar </div>
+    <div><span class="legend-dot" style="background-color: #ccc;"></span> Bar </div>
+</div>
+
+<!-- Instructions -->
+<div class="instructions">
+    <h3>Instructions</h3>
+    <p> Click on a bar directly to see its connected bars. </p>
+    <p> Or click on a bar in the list to highlight it and its connected bars.</p>
+</div>
+
+
 
 <style>
     @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;700&display=swap");
@@ -216,14 +281,78 @@
         border: 1px solid grey;
         border-radius: 10px;
     }
+    .title {
+        font-family: 'Nunito', sans-serif; /* Use a custom font */
+        font-size: 32px; /* Adjust the font size */
+        font-weight: bold; /* Make the title bold */
+        color: #333; /* Set the text color */
+        text-align: center; /* Center the text */
+        margin-bottom: 20px; /* Add some bottom margin for spacing */
+        line-height: 1.2; /* Adjust line height for better spacing */
+        max-width: 60%;
+        margin: 0 auto; /* Center the element horizontally */
+    }
 
     .centered {
         position: absolute;
         top: 50%;
-        left: 50%;
+        left: 67%;
         transform: translate(-50%, -50%);
-        background-color: rgb(57, 58, 70);
-        padding: 10px;
+        background-color: gray;
+        padding: 5px;
         border: 1px solid black;
     }
+    .bar-list {
+        position: absolute;
+        top: 50%;
+        left: 15%;
+        transform: translateY(-50%);
+        max-height: 80vh;
+        overflow-y: auto;
+        border: 2px solid #7c7c7c; /* Add border */
+        border-width: 10px;
+        background-color: rgb(86, 180, 233);
+        padding: 15px; /* Add some padding for spacing */
+    }
+
+    /* Legend */
+    .legend {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .legend-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+
+    /* Instructions */
+    .instructions {
+        position: absolute;
+        bottom: 40px;
+        right: 20px;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .instructions h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+
+
+
+
 </style>
