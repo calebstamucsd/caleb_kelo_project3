@@ -78,7 +78,6 @@
             svg.selectAll('circle').filter(function (d) {return d.id == event.subject.id}).style('fill', 'red');
             svg.selectAll('line').filter(function (d) {return (d.source.id == event.subject.id 
                 || d.target.id == event.subject.id)}).each(function (d) {
-                    console.log(d)
                     // For each edge, color the edge red
                     d3.select(this).style('stroke', 'red')
                     // Determine whether the connected node is storced in d.source or d.target
@@ -160,17 +159,24 @@
 
         // Function to highlight node and link
         function highlightNode(nodeId) {
-            const selectedNode = svg.select(`circle[id='${nodeId}']`);
-            selectedNode.style("fill", "red");
-            console.log(selectedNode)
+            // const selectedNode = svg.select(`circle[id='${nodeId}']`);
+            // selectedNode.style("fill", "red");
+            let clicked_circle = svg.selectAll('circle').filter(function (d) {return d.id == nodeId})
+            clicked_circle.style('fill', 'red');
 
             // Highlight connected links
-            link.filter(d => d.source.id === nodeId || d.target.id === nodeId)
-                .style("stroke", "red");
-
-            // Dim unconnected nodes
-            node.filter(d => d.id !== nodeId)
-                .style("fill", "#ccc");
+            let clicked_links = svg.selectAll('line').filter(d => d.source.id === nodeId || d.target.id === nodeId)
+            clicked_links.style("stroke", "red")
+            clicked_links.each(function (d) {
+                    let target_id = null;
+                    if(d.source.id == nodeId) {
+                        target_id = d.target.id
+                    }
+                    else {
+                        target_id = d.source.id
+                    }
+                    svg.selectAll('circle').filter(function (d) {return d.id == target_id}).style('fill', `#a65959`);
+                })
         }
 
         // Function to reset highlighting
@@ -185,7 +191,6 @@
     
             // Check if the clicked item is already highlighted
             const isHighlighted = clickedItem.style("background-color") === "rgb(240, 228, 66)";
-            console.log(clickedItem.style("background-color"))
 
             if (isHighlighted) {
                 resetHighlighting(); // Reset highlighting if already highlighted
