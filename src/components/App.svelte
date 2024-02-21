@@ -33,8 +33,8 @@
 
         // Makes all the edges
         const link = svg.append("g")
-            .attr("stroke", "#999")
-            .attr("stroke-opacity", 0.6)
+            .attr("stroke", "#d3d3d3")
+            .attr("stroke-opacity", 0.3)
             .selectAll()
             .data(links) // Contain the extra data from the f_bar_links.json file
             .join("line")
@@ -44,7 +44,7 @@
         const node = svg.append("g")
             .attr("stroke", "#000") // Outline
             .attr("fill", '#fff') // Fill Color
-            .attr("stroke-width", 1.5)
+            .attr("stroke-width", 0.5)
             .selectAll()
             .data(nodes) // Contain the extra data from the f_bars.json file (very helpful because I can just add more stuff to the dataframe and make a new f_bars.json file)
             .join("circle")
@@ -78,7 +78,7 @@
                 || d.target.id == event.subject.id)}).each(function (d) {
                     console.log(d)
                     // For each edge, color the edge red
-                    d3.select(this).style('stroke', 'red');
+                    d3.select(this).style('stroke', 'red')
                     // Determine whether the connected node is storced in d.source or d.target
                     let target_id = null;
                     if(d.source.id == event.subject.id) {
@@ -120,7 +120,7 @@
             svg.selectAll('circle').filter(function (d) {return d.id == event.subject.id}).style('fill', 'white');
             svg.selectAll('line').filter(function (d) {return (d.source.id == event.subject.id 
                 || d.target.id == event.subject.id)}).each(function (d) {
-                    d3.select(this).style('stroke', '#999');
+                    d3.select(this).style('stroke', '#999')
                     let target_id = null;
                     if(d.source.id == event.subject.id) {
                         target_id = d.target.id
@@ -222,7 +222,7 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background-color: gray;
+        background-color: rgb(57, 58, 70);
         padding: 10px;
         border: 1px solid black;
     }
