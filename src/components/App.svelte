@@ -221,7 +221,7 @@
 </div>
 
 <div class='title'>
-    Network Visualization of Jazz Clubs in Downtown New Orleans by Mutual Yelp Reviews
+    Network Visualization of Jazz Clubs in the New Orleans French Quarter by Mutual Yelp Reviews
 </div>
 <div class='centered'>
     <svg class='network' viewBox="190 150 390 350">
