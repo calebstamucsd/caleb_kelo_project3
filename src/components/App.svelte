@@ -73,6 +73,8 @@
 
         function colorSwap(event) {
             // Make the circle you clicked red
+            resetHighlighting()
+            d3.selectAll('.bar-list div').style("background-color", "rgb(86, 180, 233)");
             svg.selectAll('circle').filter(function (d) {return d.id == event.subject.id}).style('fill', 'red');
             svg.selectAll('line').filter(function (d) {return (d.source.id == event.subject.id 
                 || d.target.id == event.subject.id)}).each(function (d) {
@@ -164,7 +166,7 @@
 
             // Highlight connected links
             link.filter(d => d.source.id === nodeId || d.target.id === nodeId)
-                .attr("stroke", "red");
+                .style("stroke", "red");
 
             // Dim unconnected nodes
             node.filter(d => d.id !== nodeId)
@@ -174,7 +176,7 @@
         // Function to reset highlighting
         function resetHighlighting() {
             node.style("fill", "#fff");
-            link.attr("stroke", "#999");
+            link.style("stroke", "#999");
         }
 
         // List item click handler
@@ -307,7 +309,7 @@
         top: 50%;
         left: 15%;
         transform: translateY(-50%);
-        max-height: 80vh;
+        max-height: 70vh;
         overflow-y: auto;
         border: 2px solid #7c7c7c; /* Add border */
         border-width: 10px;
